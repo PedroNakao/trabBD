@@ -13,6 +13,8 @@ public class PrincipalView extends Application {
     private Tela recursoView = new RecursoView();
     private Tela salaView = new SalaView();
     private Tela usuarioView = new UsuarioView();
+    private Tela tipoUsuarioView = new TipoUsuarioView();
+    private Tela reservaView = new ReservaView();
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -20,6 +22,8 @@ public class PrincipalView extends Application {
         Pane telarecursoView =  recursoView.render();
         Pane telasalaView = salaView.render();
         Pane telausuarioView = usuarioView.render();
+        Pane telatipoUsuarioView = tipoUsuarioView.render();
+        Pane telareservaPaneView = reservaView.render();
 
         BorderPane panPrincipal = new BorderPane();
 
@@ -27,18 +31,21 @@ public class PrincipalView extends Application {
 
         MenuBar menuBar = new MenuBar();
 
-        Menu menuFile = new Menu("File");
-        Menu menuEdit = new Menu("Edit");
+        Menu menuReserva = new Menu("Reserva");
         Menu menuTela = new Menu("Tela");
-        Menu menuHelp = new Menu("Help");
 
-        menuBar.getMenus().addAll( menuFile, menuEdit,
-                menuTela, menuHelp);
+        menuBar.getMenus().addAll(
+                menuTela, menuReserva);
 
         MenuItem itemRecurso = new MenuItem("Recurso");
         MenuItem itemSala = new MenuItem("Sala");
         MenuItem itemUsuario = new MenuItem("Usuario");
-        menuTela.getItems().addAll( itemRecurso, itemSala, itemUsuario );
+        MenuItem itemTipoUsuario = new MenuItem("Tipo Usuario");
+        MenuItem itemReserva = new MenuItem("Reserva");
+
+        menuTela.getItems().addAll( itemRecurso, itemSala, itemUsuario,  itemTipoUsuario);
+
+        menuReserva.getItems().addAll(itemReserva);
 
         itemRecurso.setOnAction( e ->
                 panPrincipal.setCenter( telarecursoView )
@@ -50,10 +57,18 @@ public class PrincipalView extends Application {
                 panPrincipal.setCenter( telausuarioView )
         );
 
+        itemTipoUsuario.setOnAction(e->
+                panPrincipal.setCenter( telatipoUsuarioView)
+        );
+
+        itemReserva.setOnAction(e->
+                panPrincipal.setCenter( telareservaPaneView)
+        );
+
         panPrincipal.setTop( menuBar );
 
         stage.setScene(scn);
-        stage.setTitle("Sistema de Contatos e Redes Sociais");
+        stage.setTitle("Sistema de gerenciar reserva de salas");
         stage.show();
     }
 

@@ -4,18 +4,19 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.util.Callback;
+import model.TipoUsuario;
 import model.Usuario;
 
-public class UsuarioView implements Tela {
+public class TipoUsuarioView implements Tela{
     private TextField txtID = new TextField();
     private TextField txtNome = new TextField();
-    private ComboBox<String> txtTipoUsuario = new ComboBox<>();
-    private TextField txtEmail = new TextField();
-    //private UsuarioControl control = new UsuarioControl();
-    private TableView<Usuario> tblUsuario = new TableView<Usuario>();
+    private TextField txtHorasPermitidas = new TextField();
+
+    private TableView<TipoUsuario> tblTipoUsuario = new TableView<TipoUsuario>();
 
     @Override
     public Pane render() {
+
         BorderPane panePrincipal = new  BorderPane();
         GridPane gridCadastro = new GridPane();
 
@@ -23,33 +24,28 @@ public class UsuarioView implements Tela {
         gridCadastro.add(txtID, 1,0);
         gridCadastro.add(new Label("Nome :"), 0,1);
         gridCadastro.add(txtNome, 1,1);
-        gridCadastro.add(new Label("Email :"), 0,2);
-        gridCadastro.add(txtEmail, 1,2);
-        gridCadastro.add(new Label("Tipo Usuário :"), 0,3);
-        gridCadastro.add(txtTipoUsuario, 1,3);
-
+        gridCadastro.add(new Label("Horas Permitidas :"), 0,2);
+        gridCadastro.add(txtHorasPermitidas, 1,2);
 
         Button btnInserir = new Button("Inserir");
         Button btnBuscar = new Button("Buscar");
 
-        TableColumn<Usuario, String> colNome = new TableColumn<>();
+        TableColumn<TipoUsuario, String> colNome = new TableColumn<>();
         colNome.setCellValueFactory( e -> new ReadOnlyStringWrapper(e.getValue().getNome()));
 
-        TableColumn<Usuario, String> colEmail = new TableColumn<>();
-        colEmail.setCellValueFactory(e->new ReadOnlyStringWrapper(e.getValue().getEmail()));
+        TableColumn<TipoUsuario, String> colHorasPermitidas = new TableColumn<>();
+        colHorasPermitidas.setCellValueFactory(e->
+                new ReadOnlyStringWrapper(String.valueOf(e.getValue().getHorasPermitidas()))
+        );
 
-        TableColumn<Usuario, String> colTipoUsuario = new TableColumn<>();
-        colTipoUsuario.setCellValueFactory(e->new ReadOnlyStringWrapper(e.getValue().getTipoUsuario().getNome()));
-
-
-        Callback<TableColumn<Usuario, Void>, TableCell<Usuario, Void>> fabricanteColunaAcoes =
+        Callback<TableColumn<TipoUsuario, Void>, TableCell<TipoUsuario, Void>> fabricanteColunaAcoes =
                 ( param ) -> new TableCell<>() {
                     private Button btnApagar = new Button("Apagar");
                     private Button btnEditar = new Button("Editar");
 
                     {
                         btnApagar.setOnAction( e -> {
-                            //Adicionar método do controle para apagar()
+                                    //Adicionar método do controle para apagar()
                                     new Alert(Alert.AlertType.INFORMATION,
                                             "Registro apagado com sucesso " )
                                             .showAndWait();
@@ -57,7 +53,7 @@ public class UsuarioView implements Tela {
                         );
 
                         btnEditar.setOnAction( e -> {
-                            //Adicionar método do controle para editar()
+                                    //Adicionar método do controle para editar()
                                     new Alert(Alert.AlertType.INFORMATION,
                                             "Registro aberto para edição " )
                                             .showAndWait();
@@ -76,10 +72,10 @@ public class UsuarioView implements Tela {
                     }
                 };
 
-        TableColumn<Usuario, Void> colAcoes = new TableColumn<>("Ações");
+        TableColumn<TipoUsuario, Void> colAcoes = new TableColumn<>("Ações");
         colAcoes.setCellFactory(fabricanteColunaAcoes);
 
-        tblUsuario.getColumns().addAll(colNome, colEmail, colTipoUsuario, colAcoes);
+        tblTipoUsuario.getColumns().addAll(colNome, colHorasPermitidas, colAcoes);
 
 
         //Colocar os Bindings
@@ -87,10 +83,10 @@ public class UsuarioView implements Tela {
 
         btnInserir.setOnAction(
                 e ->  {
-                   //Metodo gravar do control
-                    new Alert(Alert.AlertType.INFORMATION, "Usuário Salvo com sucesso")
+                    //Metodo gravar do control
+                    new Alert(Alert.AlertType.INFORMATION, "Tipo Usuário Salvo com sucesso")
                             .showAndWait();
-                    tblUsuario.refresh();
+                    tblTipoUsuario.refresh();
                     //Metodo control para limpar tela
                 }
         );
@@ -109,8 +105,9 @@ public class UsuarioView implements Tela {
         panSuperior.getChildren().addAll(gridCadastro, panBotoes);
 
         panePrincipal.setTop(panSuperior);
-        panePrincipal.setCenter(tblUsuario);
+        panePrincipal.setCenter(tblTipoUsuario);
 
         return panePrincipal;
+
     }
 }

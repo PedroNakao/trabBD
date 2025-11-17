@@ -4,7 +4,7 @@ public class Usuario {
     private int id;
     private String nome;
     private String email;
-    private String tipoUsuario;
+    private TipoUsuario tipoUsuario;
 
     public int getId() {
         return id;
@@ -30,11 +30,11 @@ public class Usuario {
         this.email = email;
     }
 
-    public String getTipoUsuario() {
+    public TipoUsuario getTipoUsuario() {
         return tipoUsuario;
     }
 
-    public void setTipoUsuario(String tipoUsuario) {
+    public void setTipoUsuario(TipoUsuario tipoUsuario) {
         this.tipoUsuario = tipoUsuario;
     }
 
