@@ -6,12 +6,16 @@ public class Recurso {
     private String descricao;
     private boolean emManutencao;
 
-    public String getNome() {
-        return nome;
-    }
+    public int getId(){return id;}
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getNome() {return nome;}
+
+    public void setNome(String nome) {
+        this.nome = nome;
     }
 
     public String getDescricao() {
@@ -22,15 +26,7 @@ public class Recurso {
         this.descricao = descricao;
     }
 
-    public void getNome(String nome) {
-        this.nome = nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public boolean isEmManutencao() {
+    public boolean getisEmManutencao() {
         return emManutencao;
     }
 

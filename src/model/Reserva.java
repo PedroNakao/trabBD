@@ -2,15 +2,17 @@ package model;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 public class Reserva {
     private int ReservaId;
     private Sala SalaId;
     private Usuario UsuarioId;
+    private TipoUsuario TipoId;
     private Recurso RecursoId;
     private LocalDate dataReserva;
-    private LocalDateTime horarioInicio;
-    private LocalDateTime horarioFim;
+    private LocalTime horarioInicio;
+    private LocalTime horarioFim;
 
     public int getReservaId() {
         return ReservaId;
@@ -52,19 +54,19 @@ public class Reserva {
         this.dataReserva = dataReserva;
     }
 
-    public LocalDateTime getHorarioInicio() {
+    public LocalTime getHorarioInicio() {
         return horarioInicio;
     }
 
-    public void setHorarioInicio(LocalDateTime horarioInicio) {
+    public void setHorarioInicio(LocalTime horarioInicio) {
         this.horarioInicio = horarioInicio;
     }
 
-    public LocalDateTime getHorarioFim() {
+    public LocalTime getHorarioFim() {
         return horarioFim;
     }
 
-    public void setHorarioFim(LocalDateTime horarioFim) {
+    public void setHorarioFim(LocalTime horarioFim) {
         this.horarioFim = horarioFim;
     }
 
@@ -79,6 +81,14 @@ public class Reserva {
                 ", horarioInicio=" + horarioInicio +
                 ", horarioFim=" + horarioFim +
                 '}';
+    }
+
+    public TipoUsuario getTipoId() {
+        return TipoId;
+    }
+
+    public void setTipoId(TipoUsuario tipoId) {
+        TipoId = tipoId;
     }
 }
 

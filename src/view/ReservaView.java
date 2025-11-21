@@ -15,6 +15,7 @@ public class ReservaView implements Tela{
     private ComboBox<Integer> txtIDSala = new ComboBox<>();
     private ComboBox<Integer> txtIDUsuario = new ComboBox<>();
     private ComboBox<Integer> txtIDRecurso = new ComboBox<>();
+    private TextField txtIDTipo = new TextField();
     private TextField txtDataReserva = new TextField();
     private TextField txthorarioInicio = new TextField();
     private TextField txthorarioFim = new TextField();
@@ -28,11 +29,13 @@ public class ReservaView implements Tela{
 
         gridCadastro.add(new Label("ID Reserva:"), 0,0);
         gridCadastro.add(txtIDReserva, 1,0);
-        gridCadastro.add(new Label("ID Sala :"), 0,1);
+        gridCadastro.add(new Label("Nome Sala :"), 0,1);
         gridCadastro.add(txtIDSala, 1,1);
-        gridCadastro.add(new Label("ID Usuário :"), 0,2);
+        gridCadastro.add(new Label("Nome Usuário :"), 0,2);
         gridCadastro.add(txtIDUsuario, 1,2);
-        gridCadastro.add(new Label("ID Recurso :"), 0,3);
+        gridCadastro.add(new Label("Nome Tipo :"), 2,2);
+        gridCadastro.add(txtIDTipo, 3,2);
+        gridCadastro.add(new Label("Nome Recurso :"), 0,3);
         gridCadastro.add(txtIDRecurso, 1,3);
         gridCadastro.add(new Label("Data Reserva :"), 0,4);
         gridCadastro.add(txtDataReserva, 1,4);
@@ -40,6 +43,8 @@ public class ReservaView implements Tela{
         gridCadastro.add(txthorarioInicio, 1,5);
         gridCadastro.add(new Label("Horário Fim :"), 0,6);
         gridCadastro.add(txthorarioFim, 1,6);
+
+        txtIDTipo.setEditable(false);
 
 
         Button btnInserir = new Button("Inserir");
@@ -56,6 +61,10 @@ public class ReservaView implements Tela{
         TableColumn<Reserva, String> colIDUsuario = new TableColumn<>();
         colIDUsuario.setCellValueFactory(e ->
                 new ReadOnlyStringWrapper(String.valueOf(e.getValue().getUsuarioId())));
+
+        TableColumn<Reserva, String> colIDTipo = new TableColumn<>();
+        colIDTipo.setCellValueFactory(e ->
+                new ReadOnlyStringWrapper(String.valueOf(e.getValue().getTipoId())));
 
         TableColumn<Reserva, String> colIDRecurso = new TableColumn<>();
         colIDReserva.setCellValueFactory(e ->

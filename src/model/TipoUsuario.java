@@ -1,11 +1,12 @@
 package model;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 public class TipoUsuario {
     private int id;
     private String nome;
-    private LocalDateTime horasPermitidas;
+    private LocalTime horasPermitidas;
 
     public int getId() {
         return id;
@@ -23,11 +24,11 @@ public class TipoUsuario {
         this.nome = nome;
     }
 
-    public LocalDateTime getHorasPermitidas() {
+    public LocalTime getHorasPermitidas() {
         return horasPermitidas;
     }
 
-    public void setHorasPermitidas(LocalDateTime horasPermitidas) {
+    public void setHorasPermitidas(LocalTime horasPermitidas) {
         this.horasPermitidas = horasPermitidas;
     }
 

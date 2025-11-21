@@ -10,9 +10,9 @@ public class RecursoView implements Tela {
     private TextField txtID = new TextField();
     private TextField txtNome = new TextField();
     private TextField txtDescricao = new TextField();
-    private TextField txtemManutencao = new TextField();
     //private UsuarioControl control = new UsuarioControl();
     private TableView<Recurso> tblRecurso = new TableView<Recurso>();
+    private CheckBox txtManutencao = new CheckBox();
 
     @Override
     public Pane render() {
@@ -26,7 +26,7 @@ public class RecursoView implements Tela {
         gridCadastro.add(new Label("Descrição :"), 0,2);
         gridCadastro.add(txtDescricao, 1,2);
         gridCadastro.add(new Label("Em manutenção:"), 0,3);
-        gridCadastro.add(txtemManutencao, 1,3);
+        gridCadastro.add(txtManutencao, 1,3);
 
 
         Button btnInserir = new Button("Inserir");
@@ -39,7 +39,7 @@ public class RecursoView implements Tela {
         colDescricao.setCellValueFactory(e->new ReadOnlyStringWrapper(e.getValue().getDescricao()));
 
         TableColumn<Recurso, String> colEmManutencao = new TableColumn<>();
-        colEmManutencao.setCellValueFactory(e->new ReadOnlyStringWrapper(String.valueOf(e.getValue().isEmManutencao())));
+        colEmManutencao.setCellValueFactory(e->new ReadOnlyStringWrapper(String.valueOf(e.getValue().getisEmManutencao())));
 
 
         Callback<TableColumn<Recurso, Void>, TableCell<Recurso, Void>> fabricanteColunaAcoes =
