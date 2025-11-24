@@ -1,16 +1,23 @@
 package view;
 
+import controller.RecursoController;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.util.Callback;
+import javafx.util.converter.NumberStringConverter;
 import model.Recurso;
+import persisitence.GenericDao;
+import persisitence.RecursoDao;
+
+import java.sql.SQLException;
 
 public class RecursoView implements Tela {
     private TextField txtID = new TextField();
     private TextField txtNome = new TextField();
     private TextField txtDescricao = new TextField();
-    //private UsuarioControl control = new UsuarioControl();
+    private RecursoController control = new RecursoController(new RecursoDao(new GenericDao()));
     private TableView<Recurso> tblRecurso = new TableView<Recurso>();
     private CheckBox txtManutencao = new CheckBox();
 
@@ -83,15 +90,27 @@ public class RecursoView implements Tela {
 
 
         //Colocar os Bindings
+        Bindings.bindBidirectional(txtID.textProperty(), control.idProperty(), new NumberStringConverter(
+        ));
+        Bindings.bindBidirectional(txtNome.textProperty(), control.nomeProperty());
+        Bindings.bindBidirectional(txtDescricao.textProperty(), control.descricaoProperty());
+        Bindings.bindBidirectional(txtManutencao.selectedProperty(), control.emManutencaoProperty());
 
-
+        //Metodo control para inserir e limpar tela
         btnInserir.setOnAction(
                 e ->  {
-                    //Metodo gravar do control
-                    new Alert(Alert.AlertType.INFORMATION, "Usuário Salvo com sucesso")
-                            .showAndWait();
-                    tblRecurso.refresh();
-                    //Metodo control para limpar tela
+                    try {
+                        control.inserir();
+                        tblRecurso.refresh();
+                        control.limparCampos();
+                        new Alert(Alert.AlertType.INFORMATION, "Usuário Salvo com sucesso")
+                                .showAndWait();
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    } catch (ClassNotFoundException ex) {
+                        throw new RuntimeException(ex);
+                    }
+
                 }
         );
 

@@ -21,19 +21,20 @@ public class RecursoController {
     private StringProperty descricao = new SimpleStringProperty();
     private BooleanProperty emManutencao = new SimpleBooleanProperty();
 
+
     public IntegerProperty idProperty(){
         return id;
     }
     public StringProperty nomeProperty(){
         return nome;
     }
-    public StringProperty getDescricao(){
+    public StringProperty descricaoProperty(){
         return descricao;
     }
-    public BooleanProperty getEmManutencao(){
+    public BooleanProperty emManutencaoProperty(){
         return emManutencao;
     }
-    public ObservableList<Recurso> getLista(){
+    public ObservableList<Recurso> listaProperty(){
         return lista;
     }
 
@@ -56,5 +57,34 @@ public class RecursoController {
         Recurso r = toEntity();
         rDao.inserir(r);
         lista.add(r);
+    }
+    public void deletar(Recurso r) throws SQLException, ClassNotFoundException {
+        rDao.excluir(r);
+        lista.remove(r);
+    }
+    public void modificar(Recurso r) throws SQLException, ClassNotFoundException {
+        rDao.atualizar(r);
+    }
+    public void buscarPorId() throws SQLException, ClassNotFoundException {
+        Recurso filtro = new Recurso();
+        filtro.setId(id.get());
+
+        Recurso r = rDao.consultar(filtro);
+        lista.clear();
+
+        if(r != null & r.getId() != 0){
+            lista.add(r);
+            fromEntity(r);
+        }
+    }
+    public void listar() throws SQLException, ClassNotFoundException {
+        lista.clear();
+        lista.addAll(rDao.listar(null));
+    }
+    public void limparCampos(){
+        id.set(0);
+        nome.set("");
+        descricao.set("");
+        emManutencao.set(false);
     }
 }
