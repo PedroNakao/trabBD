@@ -1,24 +1,32 @@
 package view;
 
+import controller.ReservaController;
+import controller.UsuarioController;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.util.Callback;
-import model.Recurso;
-import model.Reserva;
-import model.Sala;
-import model.Usuario;
+import javafx.util.converter.LocalTimeStringConverter;
+import javafx.util.converter.NumberStringConverter;
+import model.*;
+import persisitence.*;
+
+import java.sql.SQLException;
+import java.time.format.DateTimeFormatter;
 
 public class ReservaView implements Tela{
     private TextField txtIDReserva = new TextField();
 
-    private ComboBox<Integer> txtIDSala = new ComboBox<>();
-    private ComboBox<Integer> txtIDUsuario = new ComboBox<>();
-    private ComboBox<Integer> txtIDRecurso = new ComboBox<>();
+    private ComboBox<Sala> txtIDSala = new ComboBox<>();
+    private ComboBox<Usuario> txtIDUsuario = new ComboBox<>();
+    private ComboBox<Recurso> txtIDRecurso = new ComboBox<>();
     private TextField txtIDTipo = new TextField();
-    private TextField txtDataReserva = new TextField();
+    private DatePicker txtDataReserva = new DatePicker();
     private TextField txthorarioInicio = new TextField();
     private TextField txthorarioFim = new TextField();
+    private ReservaController control = new ReservaController(new ReservaDao(new GenericDao()),
+            new SalaDao(new GenericDao()), new UsuarioDao(new GenericDao()), new RecursoDao(new GenericDao()));
 
     private TableView<Reserva> tblReserva = new TableView<Reserva>();
 
@@ -46,9 +54,66 @@ public class ReservaView implements Tela{
 
         txtIDTipo.setEditable(false);
 
+        try {
+            control.carregarTipos();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        txtIDSala.setItems(control.getListaSalas());
+        txtIDUsuario.setItems(control.getListaUsuarios());
+        txtIDRecurso.setItems(control.getListaRecursos());
+
+        txtIDSala.setCellFactory(cb -> new ListCell<Sala>() {
+            @Override
+            protected void updateItem(Sala item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "" : item.getNome());
+            }
+        });
+        txtIDSala.setButtonCell(new ListCell<Sala>() {
+            @Override
+            protected void updateItem(Sala item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "" : item.getNome());
+            }
+        });
+
+        // Configurando ComboBox para mostrar o nome do Usuário
+        txtIDUsuario.setCellFactory(cb -> new ListCell<Usuario>() {
+            @Override
+            protected void updateItem(Usuario item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "" : item.getNome());
+            }
+        });
+        txtIDUsuario.setButtonCell(new ListCell<Usuario>() {
+            @Override
+            protected void updateItem(Usuario item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "" : item.getNome());
+            }
+        });
+
+        // Configurando ComboBox para mostrar o nome do Recurso
+        txtIDRecurso.setCellFactory(cb -> new ListCell<Recurso>() {
+            @Override
+            protected void updateItem(Recurso item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "" : item.getNome());
+            }
+        });
+        txtIDRecurso.setButtonCell(new ListCell<Recurso>() {
+            @Override
+            protected void updateItem(Recurso item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "" : item.getNome());
+            }
+        });
+
 
         Button btnInserir = new Button("Inserir");
         Button btnBuscar = new Button("Buscar");
+        Button btnAtualizar = new Button("Atualizar");
 
         TableColumn<Reserva, String> colIDReserva = new TableColumn<>();
         colIDReserva.setCellValueFactory(e ->
@@ -56,19 +121,19 @@ public class ReservaView implements Tela{
 
         TableColumn<Reserva, String> colIDSala= new TableColumn<>();
         colIDSala.setCellValueFactory(e ->
-                new ReadOnlyStringWrapper(String.valueOf(e.getValue().getSalaId())));
+                new ReadOnlyStringWrapper(String.valueOf(e.getValue().getSalaId().getNome())));
 
         TableColumn<Reserva, String> colIDUsuario = new TableColumn<>();
         colIDUsuario.setCellValueFactory(e ->
-                new ReadOnlyStringWrapper(String.valueOf(e.getValue().getUsuarioId())));
+                new ReadOnlyStringWrapper(String.valueOf(e.getValue().getUsuarioId().getNome())));
 
         TableColumn<Reserva, String> colIDTipo = new TableColumn<>();
         colIDTipo.setCellValueFactory(e ->
-                new ReadOnlyStringWrapper(String.valueOf(e.getValue().getTipoId())));
+                new ReadOnlyStringWrapper(String.valueOf(e.getValue().getTipoId().getNome())));
 
         TableColumn<Reserva, String> colIDRecurso = new TableColumn<>();
         colIDReserva.setCellValueFactory(e ->
-                new ReadOnlyStringWrapper(String.valueOf(e.getValue().getRecursoId())));
+                new ReadOnlyStringWrapper(String.valueOf(e.getValue().getRecursoId().getNome())));
 
         TableColumn<Reserva, String> colDataReserva = new TableColumn<>();
         colDataReserva.setCellValueFactory(e->
@@ -82,6 +147,13 @@ public class ReservaView implements Tela{
         colhorarioFim.setCellValueFactory(e ->
                 new ReadOnlyStringWrapper(String.valueOf(e.getValue().getHorarioFim())));
 
+        colIDReserva.setText("id Reserva");
+        colIDSala.setText("Sala");
+        colIDUsuario.setText("Usuario");
+        colIDTipo.setText("Tipo Usuario");
+        colIDRecurso.setText("Recurso");
+        tblReserva.setItems(control.listaProperty());
+
 
         Callback<TableColumn<Reserva, Void>, TableCell<Reserva, Void>> fabricanteColunaAcoes =
                 ( param ) -> new TableCell<>() {
@@ -90,15 +162,28 @@ public class ReservaView implements Tela{
 
                     {
                         btnApagar.setOnAction( e -> {
+                            Reserva r = getTableView().getItems().get(getIndex());
+
                                     //Adicionar método do controle para apagar()
-                                    new Alert(Alert.AlertType.INFORMATION,
-                                            "Registro apagado com sucesso " )
-                                            .showAndWait();
+                            try {
+                                control.deletar(r);
+                                tblReserva.refresh();
+                                new Alert(Alert.AlertType.INFORMATION,
+                                        "Registro apagado com sucesso " )
+                                        .showAndWait();
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            } catch (ClassNotFoundException ex) {
+                                throw new RuntimeException(ex);
+                            }
+
                                 }
                         );
 
                         btnEditar.setOnAction( e -> {
                                     //Adicionar método do controle para editar()
+                            Reserva r = getTableView().getItems().get(getIndex());
+                                    control.fromEntity(r);
                                     new Alert(Alert.AlertType.INFORMATION,
                                             "Registro aberto para edição " )
                                             .showAndWait();
@@ -120,27 +205,73 @@ public class ReservaView implements Tela{
         TableColumn<Reserva, Void> colAcoes = new TableColumn<>("Ações");
         colAcoes.setCellFactory(fabricanteColunaAcoes);
         tblReserva.getColumns().addAll
-                (colIDReserva, colIDSala, colIDUsuario, colIDRecurso, colDataReserva, colhorarioInicio, colhorarioFim, colAcoes);
+                (colIDReserva, colIDSala, colIDUsuario, colIDRecurso, colDataReserva, colhorarioInicio, colhorarioFim,
+                        colAcoes);
 
 
         //Colocar os Bindings
+        Bindings.bindBidirectional(txtIDReserva.textProperty(), control.idProperty(), new NumberStringConverter());
+        Bindings.bindBidirectional(txtIDSala.valueProperty(), control.salaProperty());
+        Bindings.bindBidirectional(txtIDUsuario.valueProperty(),control.usuarioProperty());
+        Bindings.bindBidirectional(txtIDRecurso.valueProperty(),control.recursoProperty());
+        Bindings.bindBidirectional(txtDataReserva.valueProperty(), control.dataReservaProperty());
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+        Bindings.bindBidirectional(
+                txthorarioInicio.textProperty(),
+                control.horaInicioProperty(),
+                new LocalTimeStringConverter(timeFormatter, timeFormatter)
+        );
+
+        Bindings.bindBidirectional(
+                txthorarioFim.textProperty(),
+                control.horaFimProperty(),
+                new LocalTimeStringConverter(timeFormatter, timeFormatter)
+        );
 
 
         btnInserir.setOnAction(
                 e ->  {
                     //Metodo gravar do control
-                    new Alert(Alert.AlertType.INFORMATION, "Usuário Salvo com sucesso")
-                            .showAndWait();
-                    tblReserva.refresh();
-                    //Metodo control para limpar tela
+                    try {
+                        control.inserir();
+                        tblReserva.refresh();
+                        control.limparCampos();
+                        new Alert(Alert.AlertType.INFORMATION, "Usuário Salvo com sucesso")
+                                .showAndWait();
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    } catch (ClassNotFoundException ex) {
+                        throw new RuntimeException(ex);
+                    }
+
                 }
         );
 
         btnBuscar.setOnAction(
                 e -> {
+                    try {
+                        control.buscarPorId();
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    } catch (ClassNotFoundException ex) {
+                        throw new RuntimeException(ex);
+                    }
                     //Metodo control para pesquisar/buscar
                 }
         );
+        btnAtualizar.setOnAction(e -> {
+            try {
+                control.modificar();
+                tblReserva.refresh();
+                control.limparCampos();
+                new Alert(Alert.AlertType.INFORMATION, "Registro atualizado com sucesso!")
+                        .showAndWait();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            } catch (ClassNotFoundException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
 
 
         HBox panBotoes = new HBox();

@@ -17,16 +17,16 @@ public class ReservaDao implements ICrud<Reserva>{
     @Override
     public void inserir(Reserva reserva) throws SQLException, ClassNotFoundException {
         Connection con = gDao.getConnection();
-        String sql = "INSERT INTO Reserva VALUES (?,?,?,?,?,?,?,?)";
+        String sql = "INSERT INTO Reserva (salaId, UsuarioId, TipoId, RecursoId, dataReserva," +
+                " horaInicio, horaFim )VALUES (?,?,?,?,?,?,?)";
         PreparedStatement ps = con.prepareStatement(sql);
-        ps.setInt(1,reserva.getReservaId());
-        ps.setInt(2,reserva.getSalaId().getId());
-        ps.setInt(3,reserva.getUsuarioId().getId());
-        ps.setInt(4,reserva.getTipoId().getId());
-        ps.setInt(5,reserva.getRecursoId().getId());
-        ps.setDate(6, Date.valueOf(reserva.getDataReserva()));
-        ps.setTime(7, Time.valueOf(reserva.getHorarioInicio()));
-        ps.setTime(8,Time.valueOf(reserva.getHorarioFim()));
+        ps.setInt(1,reserva.getSalaId().getId());
+        ps.setInt(2,reserva.getUsuarioId().getId());
+        ps.setInt(3,reserva.getTipoId().getId());
+        ps.setInt(4,reserva.getRecursoId().getId());
+        ps.setDate(5, Date.valueOf(reserva.getDataReserva()));
+        ps.setTime(6, Time.valueOf(reserva.getHorarioInicio()));
+        ps.setTime(7,Time.valueOf(reserva.getHorarioFim()));
         ps.execute();
         ps.close();
         con.close();
@@ -51,14 +51,15 @@ public class ReservaDao implements ICrud<Reserva>{
         sql.append("UPDATE Reserva SET salaId = ?, UsuarioId = ?," );
         sql.append("RecursoId = ?, ");
         sql.append("dataReserva = ?, horaInicio = ?, horaFim = ?");
+        sql.append("WHERE idReserva = ?");
         PreparedStatement ps = con.prepareStatement(sql.toString());
-        ps.setInt(1,reserva.getReservaId());
         ps.setInt(2,reserva.getSalaId().getId());
         ps.setInt(3,reserva.getUsuarioId().getId());
         ps.setInt(4,reserva.getRecursoId().getId());
         ps.setDate(5, Date.valueOf(reserva.getDataReserva()));
         ps.setTime(6, Time.valueOf(reserva.getHorarioInicio()));
         ps.setTime(7,Time.valueOf(reserva.getHorarioFim()));
+        ps.setInt(8,reserva.getReservaId());
         ps.execute();
         ps.close();
         con.close();
@@ -126,9 +127,7 @@ public class ReservaDao implements ICrud<Reserva>{
         sql.append("AND r.UsuarioId = u.idUsuario ");
         sql.append("AND r.TipoId = t.idTipo ");
         sql.append("AND r.RecursoId = re.idRecurso ");
-        sql.append("AND r.idReserva = ?");
         PreparedStatement ps = con.prepareStatement(sql.toString());
-        ps.setInt(1,reserva.getReservaId());
         ResultSet rs = ps.executeQuery();
         while(rs.next()){
             Reserva r = new Reserva();

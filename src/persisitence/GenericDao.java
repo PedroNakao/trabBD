@@ -1,5 +1,4 @@
 package persisitence;
-import net.sourceforge.jtds.jdbc.Driver;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -12,10 +11,13 @@ public class GenericDao {
         String dbName = "GerenciadorReservas";
         String user = "fernando";
         String senha = "flecha11";
-        Class.forName("net.sourceforge.jtds.jdbc.Driver");//Driver
-        con = DriverManager.getConnection(String.format(
-                "jdbc:jtds:sqlserver://%s:1433:databaseName=%s:user=%s:password=%s", hostName, dbName, user, senha
-        ));
+        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");//Driver
+        String url = "jdbc:sqlserver://" + hostName + ":1433;"
+                + "databaseName=" + dbName + ";"
+                + "encrypt=false;"    // importante para evitar erro de SSL
+                + "trustServerCertificate=true;";
+        con = DriverManager.getConnection(url, user, senha
+        );
         return con;
     }
 }

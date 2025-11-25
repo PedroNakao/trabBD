@@ -1,17 +1,28 @@
 package view;
 
+import controller.UsuarioController;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.util.Callback;
+import javafx.util.converter.NumberStringConverter;
+import model.TipoUsuario;
 import model.Usuario;
+import persisitence.GenericDao;
+import persisitence.TipoUsuarioDao;
+import persisitence.UsuarioDao;
+
+import java.sql.SQLException;
 
 public class UsuarioView implements Tela {
     private TextField txtID = new TextField();
     private TextField txtNome = new TextField();
-    private ComboBox<String> txtTipoUsuario = new ComboBox<>();
+    private ComboBox<TipoUsuario> txtTipoUsuario = new ComboBox<>();
     private TextField txtEmail = new TextField();
-    //private UsuarioControl control = new UsuarioControl();
+    private UsuarioController control = new UsuarioController(new UsuarioDao(new GenericDao()),
+            new TipoUsuarioDao(new GenericDao()));
     private TableView<Usuario> tblUsuario = new TableView<Usuario>();
 
     @Override
@@ -28,9 +39,39 @@ public class UsuarioView implements Tela {
         gridCadastro.add(new Label("Tipo Usuário :"), 0,3);
         gridCadastro.add(txtTipoUsuario, 1,3);
 
+        try {
+            control.carregarTipos();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        txtTipoUsuario.setItems(control.getListaTipos());
+
+        txtTipoUsuario.setCellFactory(cb -> new ListCell<>() {
+            @Override
+            protected void updateItem(TipoUsuario item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "" : item.getNome());
+            }
+        });
+
+        txtTipoUsuario.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(TipoUsuario item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "" : item.getNome());
+            }
+        });
+
+
 
         Button btnInserir = new Button("Inserir");
         Button btnBuscar = new Button("Buscar");
+        Button btnAtualizar = new Button("Atualizar");
+
+        TableColumn<Usuario, Number> colId = new TableColumn<>("ID");
+        colId.setCellValueFactory(e ->
+                new ReadOnlyIntegerWrapper(e.getValue().getId())
+        );
 
         TableColumn<Usuario, String> colNome = new TableColumn<>();
         colNome.setCellValueFactory( e -> new ReadOnlyStringWrapper(e.getValue().getNome()));
@@ -41,6 +82,11 @@ public class UsuarioView implements Tela {
         TableColumn<Usuario, String> colTipoUsuario = new TableColumn<>();
         colTipoUsuario.setCellValueFactory(e->new ReadOnlyStringWrapper(e.getValue().getTipoUsuario().getNome()));
 
+        colId.setText("ID");
+        colNome.setText("Nome");
+        colEmail.setText("Capacidade");
+        colTipoUsuario.setText("Tipo Usuario");
+        tblUsuario.setItems(control.listaProperty());
 
         Callback<TableColumn<Usuario, Void>, TableCell<Usuario, Void>> fabricanteColunaAcoes =
                 ( param ) -> new TableCell<>() {
@@ -49,15 +95,27 @@ public class UsuarioView implements Tela {
 
                     {
                         btnApagar.setOnAction( e -> {
+                            Usuario u = getTableView().getItems().get(getIndex());
                             //Adicionar método do controle para apagar()
-                                    new Alert(Alert.AlertType.INFORMATION,
-                                            "Registro apagado com sucesso " )
-                                            .showAndWait();
+                            try {
+                                control.deletar(u);
+                                tblUsuario.refresh();
+                                new Alert(Alert.AlertType.INFORMATION,
+                                        "Registro apagado com sucesso " )
+                                        .showAndWait();
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            } catch (ClassNotFoundException ex) {
+                                throw new RuntimeException(ex);
+                            }
+
                                 }
                         );
 
                         btnEditar.setOnAction( e -> {
+                            Usuario u = getTableView().getItems().get(getIndex());
                             //Adicionar método do controle para editar()
+                                    control.fromEntity(u);
                                     new Alert(Alert.AlertType.INFORMATION,
                                             "Registro aberto para edição " )
                                             .showAndWait();
@@ -79,31 +137,62 @@ public class UsuarioView implements Tela {
         TableColumn<Usuario, Void> colAcoes = new TableColumn<>("Ações");
         colAcoes.setCellFactory(fabricanteColunaAcoes);
 
-        tblUsuario.getColumns().addAll(colNome, colEmail, colTipoUsuario, colAcoes);
+        tblUsuario.getColumns().addAll(colId, colNome, colEmail, colTipoUsuario, colAcoes);
 
 
         //Colocar os Bindings
+        Bindings.bindBidirectional(txtID.textProperty(), control.idProperty(), new NumberStringConverter());
+        Bindings.bindBidirectional(txtNome.textProperty(), control.nomeProperty());
+        Bindings.bindBidirectional(txtEmail.textProperty(),control.emailProperty());
+        Bindings.bindBidirectional(txtTipoUsuario.valueProperty(), control.tipoUsuarioObjectProperty());
 
 
         btnInserir.setOnAction(
                 e ->  {
                    //Metodo gravar do control
-                    new Alert(Alert.AlertType.INFORMATION, "Usuário Salvo com sucesso")
-                            .showAndWait();
-                    tblUsuario.refresh();
-                    //Metodo control para limpar tela
+                    try {
+                        control.inserir();
+                        tblUsuario.refresh();
+                        control.limparCampos();
+                        new Alert(Alert.AlertType.INFORMATION, "Usuário Salvo com sucesso")
+                                .showAndWait();
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    } catch (ClassNotFoundException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
         );
 
         btnBuscar.setOnAction(
                 e -> {
                     //Metodo control para pesquisar/buscar
+                    try {
+                        control.buscarPorId();
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    } catch (ClassNotFoundException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
         );
+        btnAtualizar.setOnAction(e -> {
+            try {
+                control.modificar();
+                tblUsuario.refresh();
+                control.limparCampos();
+                new Alert(Alert.AlertType.INFORMATION, "Registro atualizado com sucesso!")
+                        .showAndWait();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            } catch (ClassNotFoundException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
 
 
         HBox panBotoes = new HBox();
-        panBotoes.getChildren().addAll(btnInserir, btnBuscar);
+        panBotoes.getChildren().addAll(btnInserir, btnBuscar,btnAtualizar);
 
         VBox panSuperior = new VBox();
         panSuperior.getChildren().addAll(gridCadastro, panBotoes);

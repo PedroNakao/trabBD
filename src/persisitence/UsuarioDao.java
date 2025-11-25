@@ -3,10 +3,7 @@ package persisitence;
 import model.TipoUsuario;
 import model.Usuario;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,13 +18,18 @@ public class UsuarioDao implements ICrud<Usuario>{
     @Override
     public void inserir(Usuario usuario) throws SQLException, ClassNotFoundException {
         Connection con = gDao.getConnection();
-        String sql = "INSERT INTO Usuario VALUES (?,?,?,?)";
-        PreparedStatement ps = con.prepareStatement(sql);
-        ps.setInt(1,usuario.getId());
-        ps.setString(2,usuario.getNome());
-        ps.setString(4,usuario.getEmail());
-        ps.setInt(1,usuario.getTipoUsuario().getId());
+        String sql = "INSERT INTO Usuario (nome, email, tipoUsuarioId )VALUES (?,?,?)";
+        PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        ps.setString(1,usuario.getNome());
+        ps.setString(2,usuario.getEmail());
+        ps.setInt(3,usuario.getTipoUsuario().getId());
         ps.execute();
+        ResultSet rs = ps.getGeneratedKeys();
+        if (rs.next()) {
+            int idGerado = rs.getInt(1);
+            usuario.setId(idGerado);
+        }
+        rs.close();
         ps.close();
         con.close();
     }
@@ -46,12 +48,12 @@ public class UsuarioDao implements ICrud<Usuario>{
     @Override
     public void atualizar(Usuario usuario) throws SQLException, ClassNotFoundException {
         Connection con = gDao.getConnection();
-        String sql = "UPDATE Usuario SET nome = ?, email = ?, tipoUsuarioId =?";
+        String sql = "UPDATE Usuario SET nome = ?, email = ?, tipoUsuarioId =?  WHERE idUsuario = ?";
         PreparedStatement ps = con.prepareStatement(sql);
-        ps.setInt(1,usuario.getId());
-        ps.setString(2,usuario.getNome());
-        ps.setString(4,usuario.getEmail());
-        ps.setInt(1,usuario.getTipoUsuario().getId());
+        ps.setString(1,usuario.getNome());
+        ps.setString(2,usuario.getEmail());
+        ps.setInt(3,usuario.getTipoUsuario().getId());
+        ps.setInt(4,usuario.getId());
         ps.execute();
         ps.close();
         con.close();
@@ -91,7 +93,6 @@ public class UsuarioDao implements ICrud<Usuario>{
         sql.append("FROM Usuario u,TipoUsuario t ");
         sql.append("WHERE t.idTipo = u.tipoUsuarioId ");
         PreparedStatement ps = con.prepareStatement(sql.toString());
-        ps.setInt(1,usuario.getId());
         ResultSet rs = ps.executeQuery();
         while (rs.next()){
             Usuario u = new Usuario();

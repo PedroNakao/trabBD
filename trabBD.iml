@@ -10,7 +10,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$USER_HOME$/Downloads/jtds-1.3.1.jar!/" />
+          <root url="jar://D:/dados/Nova pasta (3)/sqljdbc_13.2.1.0_ptb/sqljdbc_13.2/ptb/jars/mssql-jdbc-13.2.1.jre11.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

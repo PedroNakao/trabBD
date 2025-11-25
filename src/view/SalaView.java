@@ -1,16 +1,25 @@
 package view;
 
+import controller.SalaController;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.util.Callback;
+import javafx.util.converter.NumberStringConverter;
+import model.Recurso;
 import model.Sala;
+import persisitence.GenericDao;
+import persisitence.SalaDao;
+
+import java.sql.SQLException;
 
 public class SalaView implements Tela {
     private TextField txtID = new TextField();
     private TextField txtNome = new TextField();
     private TextField txtCapacidade = new TextField();
-    //private SalaControl control = new SalaControl();
+    private SalaController control = new SalaController(new SalaDao(new GenericDao()));
     private TableView<Sala> tblSala = new TableView<Sala>();
 
     @Override
@@ -28,6 +37,12 @@ public class SalaView implements Tela {
 
         Button btnInserir = new Button("Inserir");
         Button btnBuscar = new Button("Buscar");
+        Button btnAtualizar = new Button("Atualizar");
+
+        TableColumn<Sala, Number> colId = new TableColumn<>("ID");
+        colId.setCellValueFactory(e ->
+                new ReadOnlyIntegerWrapper(e.getValue().getId())
+        );
 
         TableColumn<Sala, String> colNome = new TableColumn<>();
         colNome.setCellValueFactory( e -> new ReadOnlyStringWrapper(e.getValue().getNome()));
@@ -35,6 +50,10 @@ public class SalaView implements Tela {
         TableColumn<Sala, String> colCapacidade = new TableColumn<>();
         colCapacidade.setCellValueFactory(e->new ReadOnlyStringWrapper(String.valueOf(e.getValue().getCapacidade())));
 
+        colId.setText("ID");
+        colNome.setText("Nome");
+        colCapacidade.setText("Capacidade");
+        tblSala.setItems(control.ListaProperty());
 
         Callback<TableColumn<Sala, Void>, TableCell<Sala, Void>> fabricanteColunaAcoes =
                 ( param ) -> new TableCell<>() {
@@ -43,15 +62,27 @@ public class SalaView implements Tela {
 
                     {
                         btnApagar.setOnAction( e -> {
+                            Sala s = getTableView().getItems().get(getIndex());
                                     //Adicionar método do controle para apagar()
-                                    new Alert(Alert.AlertType.INFORMATION,
-                                            "Registro apagado com sucesso " )
-                                            .showAndWait();
+                            try {
+                                control.deletar(s);
+                                tblSala.refresh();
+                                new Alert(Alert.AlertType.INFORMATION,
+                                        "Registro apagado com sucesso " )
+                                        .showAndWait();
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            } catch (ClassNotFoundException ex) {
+                                throw new RuntimeException(ex);
+                            }
+
                                 }
                         );
 
                         btnEditar.setOnAction( e -> {
+                            Sala s = getTableView().getItems().get(getIndex());
                                     //Adicionar método do controle para editar()
+                                    control.fromEntity(s);
                                     new Alert(Alert.AlertType.INFORMATION,
                                             "Registro aberto para edição " )
                                             .showAndWait();
@@ -73,37 +104,73 @@ public class SalaView implements Tela {
         TableColumn<Sala, Void> colAcoes = new TableColumn<>("Ações");
         colAcoes.setCellFactory(fabricanteColunaAcoes);
 
-        tblSala.getColumns().addAll(colNome, colCapacidade, colAcoes);
+        tblSala.getColumns().addAll(colId,colNome, colCapacidade, colAcoes);
 
 
         //Colocar os Bindings
-
+        Bindings.bindBidirectional(txtID.textProperty(), control.idProperty(), new NumberStringConverter());
+        Bindings.bindBidirectional(txtNome.textProperty(), control.nomeProperty());
+        Bindings.bindBidirectional(txtCapacidade.textProperty(), control.capacidadeProperty(),new NumberStringConverter());
 
         btnInserir.setOnAction(
                 e ->  {
                     //Metodo gravar do control
-                    new Alert(Alert.AlertType.INFORMATION, "Sala Salva com sucesso")
-                            .showAndWait();
-                    tblSala.refresh();
-                    //Metodo control para limpar tela
+                    try {
+                        control.inserir();
+                        tblSala.refresh();
+                        control.limparCampos();
+                        new Alert(Alert.AlertType.INFORMATION, "Sala Salva com sucesso")
+                                .showAndWait();
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    } catch (ClassNotFoundException ex) {
+                        throw new RuntimeException(ex);
+                    }
+
                 }
         );
 
         btnBuscar.setOnAction(
                 e -> {
+                    try {
+                        control.buscarPorId();
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    } catch (ClassNotFoundException ex) {
+                        throw new RuntimeException(ex);
+                    }
                     //Metodo control para pesquisar/buscar
                 }
         );
+        btnAtualizar.setOnAction(e -> {
+            try {
+                control.modificar();
+                tblSala.refresh();
+                control.limparCampos();
+                new Alert(Alert.AlertType.INFORMATION, "Registro atualizado com sucesso!")
+                        .showAndWait();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            } catch (ClassNotFoundException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
 
 
         HBox panBotoes = new HBox();
-        panBotoes.getChildren().addAll(btnInserir, btnBuscar);
+        panBotoes.getChildren().addAll(btnInserir, btnBuscar, btnAtualizar);
 
         VBox panSuperior = new VBox();
         panSuperior.getChildren().addAll(gridCadastro, panBotoes);
 
         panePrincipal.setTop(panSuperior);
         panePrincipal.setCenter(tblSala);
+
+        try {
+            control.listar();
+        } catch (SQLException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
 
         return panePrincipal;
     }

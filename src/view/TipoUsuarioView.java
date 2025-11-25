@@ -1,16 +1,27 @@
 package view;
 
+import controller.TipoUsuarioController;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.util.Callback;
+import javafx.util.StringConverter;
+import javafx.util.converter.NumberStringConverter;
 import model.TipoUsuario;
-import model.Usuario;
+import persisitence.GenericDao;
+import persisitence.TipoUsuarioDao;
+
+import java.sql.SQLException;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 public class TipoUsuarioView implements Tela{
     private TextField txtID = new TextField();
     private TextField txtNome = new TextField();
     private TextField txtHorasPermitidas = new TextField();
+    private TipoUsuarioController control = new TipoUsuarioController(new TipoUsuarioDao(new GenericDao()));
 
     private TableView<TipoUsuario> tblTipoUsuario = new TableView<TipoUsuario>();
 
@@ -29,6 +40,12 @@ public class TipoUsuarioView implements Tela{
 
         Button btnInserir = new Button("Inserir");
         Button btnBuscar = new Button("Buscar");
+        Button btnAtualizar = new Button("Atualizar");
+
+        TableColumn<TipoUsuario, Number> colId = new TableColumn<>("ID");
+        colId.setCellValueFactory(e ->
+                new ReadOnlyIntegerWrapper(e.getValue().getId())
+        );
 
         TableColumn<TipoUsuario, String> colNome = new TableColumn<>();
         colNome.setCellValueFactory( e -> new ReadOnlyStringWrapper(e.getValue().getNome()));
@@ -37,6 +54,10 @@ public class TipoUsuarioView implements Tela{
         colHorasPermitidas.setCellValueFactory(e->
                 new ReadOnlyStringWrapper(String.valueOf(e.getValue().getHorasPermitidas()))
         );
+        colId.setText("ID");
+        colNome.setText("Nome");
+        colHorasPermitidas.setText("Horas Permitidas");
+        tblTipoUsuario.setItems(control.getLista());
 
         Callback<TableColumn<TipoUsuario, Void>, TableCell<TipoUsuario, Void>> fabricanteColunaAcoes =
                 ( param ) -> new TableCell<>() {
@@ -45,15 +66,26 @@ public class TipoUsuarioView implements Tela{
 
                     {
                         btnApagar.setOnAction( e -> {
+                            TipoUsuario t = getTableView().getItems().get(getIndex());
                                     //Adicionar método do controle para apagar()
-                                    new Alert(Alert.AlertType.INFORMATION,
-                                            "Registro apagado com sucesso " )
-                                            .showAndWait();
+                            try {
+                                control.deletar(t);
+                                tblTipoUsuario.refresh();
+                                new Alert(Alert.AlertType.INFORMATION,
+                                        "Registro apagado com sucesso " )
+                                        .showAndWait();
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            } catch (ClassNotFoundException ex) {
+                                throw new RuntimeException(ex);
+                            }
                                 }
                         );
 
                         btnEditar.setOnAction( e -> {
+                            TipoUsuario t = getTableView().getItems().get(getIndex());
                                     //Adicionar método do controle para editar()
+                                    control.fromEntity(t);
                                     new Alert(Alert.AlertType.INFORMATION,
                                             "Registro aberto para edição " )
                                             .showAndWait();
@@ -75,37 +107,101 @@ public class TipoUsuarioView implements Tela{
         TableColumn<TipoUsuario, Void> colAcoes = new TableColumn<>("Ações");
         colAcoes.setCellFactory(fabricanteColunaAcoes);
 
-        tblTipoUsuario.getColumns().addAll(colNome, colHorasPermitidas, colAcoes);
+        tblTipoUsuario.getColumns().addAll(colId,colNome, colHorasPermitidas, colAcoes);
 
 
         //Colocar os Bindings
+        Bindings.bindBidirectional(txtID.textProperty(), control.idProperty(), new NumberStringConverter());
+        Bindings.bindBidirectional(txtNome.textProperty(), control.nomeProperty());
+        Bindings.bindBidirectional(txtHorasPermitidas.textProperty(),
+                control.horasPermitidasProperty(),
+            new StringConverter<LocalTime>() {
+                @Override
+                public String toString(LocalTime time) {
+                    if (time == null) return "";
+                    return time.format(DateTimeFormatter.ofPattern("HH:mm"));
+                }
 
+                @Override
+                public LocalTime fromString(String text) {
+                    // Campo vazio → LocalTime = null
+                    if (text == null || text.isEmpty()) {
+                        return null;
+                    }
+
+                    // Se o usuário ainda está digitando (ex: "6", "12", "12:")
+                    // não tenta converter ainda
+                    if (text.length() < 5) {
+                        return null;
+                    }
+
+                    // Só converte quando tiver o formato completo (HH:mm)
+                    try {
+                        return LocalTime.parse(text, DateTimeFormatter.ofPattern("HH:mm"));
+                    } catch (Exception e) {
+                        return null;
+                    }
+                }
+            });
 
         btnInserir.setOnAction(
                 e ->  {
                     //Metodo gravar do control
-                    new Alert(Alert.AlertType.INFORMATION, "Tipo Usuário Salvo com sucesso")
-                            .showAndWait();
-                    tblTipoUsuario.refresh();
-                    //Metodo control para limpar tela
+                    try {
+                        control.inserir();
+                        tblTipoUsuario.refresh();
+                        control.limparCampos();
+                        new Alert(Alert.AlertType.INFORMATION, "Tipo Usuário Salvo com sucesso")
+                                .showAndWait();
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    } catch (ClassNotFoundException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
         );
 
         btnBuscar.setOnAction(
                 e -> {
                     //Metodo control para pesquisar/buscar
+                    try {
+                        control.buscarPorId();
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    } catch (ClassNotFoundException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
         );
 
+        btnAtualizar.setOnAction(e -> {
+            try {
+                control.modificar();
+                tblTipoUsuario.refresh();
+                control.limparCampos();
+                new Alert(Alert.AlertType.INFORMATION, "Registro atualizado com sucesso!");
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            } catch (ClassNotFoundException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+
 
         HBox panBotoes = new HBox();
-        panBotoes.getChildren().addAll(btnInserir, btnBuscar);
+        panBotoes.getChildren().addAll(btnInserir, btnBuscar,btnAtualizar);
 
         VBox panSuperior = new VBox();
         panSuperior.getChildren().addAll(gridCadastro, panBotoes);
 
         panePrincipal.setTop(panSuperior);
         panePrincipal.setCenter(tblTipoUsuario);
+
+        try {
+            control.listar();
+        } catch (SQLException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
 
         return panePrincipal;
 

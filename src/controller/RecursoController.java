@@ -7,6 +7,7 @@ import model.Recurso;
 import persisitence.RecursoDao;
 
 import java.sql.SQLException;
+import java.util.List;
 
 public class RecursoController {
     ObservableList<Recurso> lista = FXCollections.observableArrayList();
@@ -62,18 +63,19 @@ public class RecursoController {
         rDao.excluir(r);
         lista.remove(r);
     }
-    public void modificar(Recurso r) throws SQLException, ClassNotFoundException {
+    public void modificar() throws SQLException, ClassNotFoundException {
+        Recurso r = toEntity();
         rDao.atualizar(r);
-    }
+        listar();
+        }
+
     public void buscarPorId() throws SQLException, ClassNotFoundException {
         Recurso filtro = new Recurso();
         filtro.setId(id.get());
 
         Recurso r = rDao.consultar(filtro);
-        lista.clear();
 
-        if(r != null & r.getId() != 0){
-            lista.add(r);
+        if(r != null && r.getId() != 0){
             fromEntity(r);
         }
     }
@@ -87,4 +89,5 @@ public class RecursoController {
         descricao.set("");
         emManutencao.set(false);
     }
+
 }

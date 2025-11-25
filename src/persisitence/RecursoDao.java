@@ -1,10 +1,8 @@
 package persisitence;
 
 import model.Recurso;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,15 +17,22 @@ public class RecursoDao implements ICrud<Recurso>{
     @Override
     public void inserir(Recurso recurso) throws SQLException, ClassNotFoundException {
         Connection con = gDao.getConnection();
-        String sql = "INSERT INTO Recurso VALUES (?,?,?,?)";
-        PreparedStatement ps = con.prepareStatement(sql);
-        ps.setInt(1,recurso.getId());
-        ps.setString(2,recurso.getNome());
-        ps.setString(3,recurso.getDescricao());
-        ps.setBoolean(4,recurso.getisEmManutencao());
+        String sql = "INSERT INTO Recurso (nome, descricao, manutencao) VALUES (?,?,?)";
+        PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        ps.setString(1,recurso.getNome());
+        ps.setString(2,recurso.getDescricao());
+        ps.setBoolean(3,recurso.getisEmManutencao());
         ps.execute();
-        ps.close();
-        con.close();
+
+        ResultSet rs = ps.getGeneratedKeys();
+        if (rs.next()) {
+            int idGerado = rs.getInt(1);
+            recurso.setId(idGerado);
+
+            rs.close();
+            ps.close();
+            con.close();
+        }
     }
 
     @Override
@@ -58,7 +63,7 @@ public class RecursoDao implements ICrud<Recurso>{
     @Override
     public Recurso consultar(Recurso recurso) throws SQLException, ClassNotFoundException {
         Connection con = gDao.getConnection();
-        String sql = "SELECT idRecurso, nome, descricao, manutencao FROM Recurso WHERE idRecurso = ?";
+        String sql = "SELECT idRecurso, nome, descricao, manutencao FROM Recurso WHERE idRecurso = ? ";
         PreparedStatement ps = con.prepareStatement(sql);
         ps.setInt(1,recurso.getId());
         ResultSet rs = ps.executeQuery();

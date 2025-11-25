@@ -9,7 +9,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
-public class PrincipalView extends Application {
+public class  PrincipalView extends Application {
     private Tela recursoView = new RecursoView();
     private Tela salaView = new SalaView();
     private Tela usuarioView = new UsuarioView();

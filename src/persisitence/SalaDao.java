@@ -2,10 +2,7 @@ package persisitence;
 
 import model.Sala;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,12 +16,18 @@ public class SalaDao implements ICrud<Sala>{
     @Override
     public void inserir(Sala sala) throws SQLException, ClassNotFoundException {
         Connection con = gDao.getConnection();
-        String sql = "INSERT INTO Sala VALUES (?,?,?)";
-        PreparedStatement ps = con.prepareStatement(sql);
-        ps.setInt(1,sala.getId());
-        ps.setString(2,sala.getNome());
-        ps.setInt(3,sala.getCapacidade());
+        String sql = "INSERT INTO Sala (nome, capacidade) VALUES (?,?)";
+        PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        ps.setString(1,sala.getNome());
+        ps.setInt(2,sala.getCapacidade());
         ps.execute();
+
+        ResultSet rs = ps.getGeneratedKeys();
+        if (rs.next()) {
+            int idGerado = rs.getInt(1);
+            sala.setId(idGerado);
+        }
+        rs.close();
         ps.close();
         con.close();
     }
@@ -45,9 +48,9 @@ public class SalaDao implements ICrud<Sala>{
         Connection con = gDao.getConnection();
         String sql = "UPDATE Sala SET nome = ?, capacidade = ? WHERE idSala = ?";
         PreparedStatement ps = con.prepareStatement(sql);
-        ps.setInt(1,sala.getId());
-        ps.setString(2,sala.getNome());
-        ps.setInt(3,sala.getCapacidade());
+        ps.setString(1,sala.getNome());
+        ps.setInt(2,sala.getCapacidade());
+        ps.setInt(3,sala.getId());
         ps.execute();
         ps.close();
         con.close();
@@ -75,13 +78,12 @@ public class SalaDao implements ICrud<Sala>{
     public List<Sala> listar(Sala sala) throws SQLException, ClassNotFoundException {
         List<Sala> salas = new ArrayList<>();
         Connection con = gDao.getConnection();
-        String sql = "SELECT idSala, nome, capacidade FROM Sala WHERE idSala = ?";
+        String sql = "SELECT idSala, nome, capacidade FROM Sala";
         PreparedStatement ps = con.prepareStatement(sql);
-        ps.setInt(1,sala.getId());
         ResultSet rs = ps.executeQuery();
         while(rs.next()){
             Sala s = new Sala();
-            s.setId(rs.getInt("idRecurso"));
+            s.setId(rs.getInt("idSala"));
             s.setNome(rs.getString("nome"));
             s.setCapacidade(rs.getInt("capacidade"));
             salas.add(s);

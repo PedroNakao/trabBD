@@ -2,6 +2,7 @@ package view;
 
 import controller.RecursoController;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -38,6 +39,12 @@ public class RecursoView implements Tela {
 
         Button btnInserir = new Button("Inserir");
         Button btnBuscar = new Button("Buscar");
+        Button btnAtualizar = new Button("Atualizar");
+
+        TableColumn<Recurso, Number> colId = new TableColumn<>("ID");
+        colId.setCellValueFactory(e ->
+                new ReadOnlyIntegerWrapper(e.getValue().getId())
+        );
 
         TableColumn<Recurso, String> colNome = new TableColumn<>();
         colNome.setCellValueFactory( e -> new ReadOnlyStringWrapper(e.getValue().getNome()));
@@ -48,6 +55,12 @@ public class RecursoView implements Tela {
         TableColumn<Recurso, String> colEmManutencao = new TableColumn<>();
         colEmManutencao.setCellValueFactory(e->new ReadOnlyStringWrapper(String.valueOf(e.getValue().getisEmManutencao())));
 
+        colId.setText("ID");
+        colNome.setText("Nome");
+        colDescricao.setText("Descrição");
+        colEmManutencao.setText("Manutenção");
+        tblRecurso.setItems(control.listaProperty());
+
 
         Callback<TableColumn<Recurso, Void>, TableCell<Recurso, Void>> fabricanteColunaAcoes =
                 ( param ) -> new TableCell<>() {
@@ -56,15 +69,28 @@ public class RecursoView implements Tela {
 
                     {
                         btnApagar.setOnAction( e -> {
+                            Recurso r = getTableView().getItems().get(getIndex());
                                     //Adicionar método do controle para apagar()
-                                    new Alert(Alert.AlertType.INFORMATION,
-                                            "Registro apagado com sucesso " )
-                                            .showAndWait();
+                            try {
+                                control.deletar(r);
+                                tblRecurso.refresh();
+                                new Alert(Alert.AlertType.INFORMATION,
+                                        "Registro apagado com sucesso " )
+                                        .showAndWait();
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            } catch (ClassNotFoundException ex) {
+                                throw new RuntimeException(ex);
+                            }
+
+
                                 }
                         );
 
                         btnEditar.setOnAction( e -> {
                                     //Adicionar método do controle para editar()
+                                    Recurso r = getTableView().getItems().get(getIndex());
+                                    control.fromEntity(r); //
                                     new Alert(Alert.AlertType.INFORMATION,
                                             "Registro aberto para edição " )
                                             .showAndWait();
@@ -86,12 +112,11 @@ public class RecursoView implements Tela {
         TableColumn<Recurso, Void> colAcoes = new TableColumn<>("Ações");
         colAcoes.setCellFactory(fabricanteColunaAcoes);
 
-        tblRecurso.getColumns().addAll(colNome, colDescricao, colEmManutencao, colAcoes);
+        tblRecurso.getColumns().addAll(colId, colNome, colDescricao, colEmManutencao, colAcoes);
 
 
         //Colocar os Bindings
-        Bindings.bindBidirectional(txtID.textProperty(), control.idProperty(), new NumberStringConverter(
-        ));
+        Bindings.bindBidirectional(txtID.textProperty(), control.idProperty(), new NumberStringConverter());
         Bindings.bindBidirectional(txtNome.textProperty(), control.nomeProperty());
         Bindings.bindBidirectional(txtDescricao.textProperty(), control.descricaoProperty());
         Bindings.bindBidirectional(txtManutencao.selectedProperty(), control.emManutencaoProperty());
@@ -103,7 +128,7 @@ public class RecursoView implements Tela {
                         control.inserir();
                         tblRecurso.refresh();
                         control.limparCampos();
-                        new Alert(Alert.AlertType.INFORMATION, "Usuário Salvo com sucesso")
+                        new Alert(Alert.AlertType.INFORMATION, "Recurso Salvo com sucesso")
                                 .showAndWait();
                     } catch (SQLException ex) {
                         throw new RuntimeException(ex);
@@ -117,18 +142,45 @@ public class RecursoView implements Tela {
         btnBuscar.setOnAction(
                 e -> {
                     //Metodo control para pesquisar/buscar
+                    try {
+                        control.buscarPorId();
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    } catch (ClassNotFoundException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
         );
 
+        btnAtualizar.setOnAction(e -> {
+            try {
+                control.modificar();
+                tblRecurso.refresh();
+                control.limparCampos();
+                new Alert(Alert.AlertType.INFORMATION, "Registro atualizado com sucesso!")
+                        .showAndWait();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            } catch (ClassNotFoundException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+
 
         HBox panBotoes = new HBox();
-        panBotoes.getChildren().addAll(btnInserir, btnBuscar);
+        panBotoes.getChildren().addAll(btnInserir, btnBuscar, btnAtualizar);
 
         VBox panSuperior = new VBox();
         panSuperior.getChildren().addAll(gridCadastro, panBotoes);
 
         panePrincipal.setTop(panSuperior);
         panePrincipal.setCenter(tblRecurso);
+
+        try {
+            control.listar();
+        } catch (SQLException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
 
         return panePrincipal;
     }
