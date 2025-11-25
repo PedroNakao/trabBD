@@ -18,9 +18,9 @@ public class ReservaController {
 
 
     public ReservaController(ReservaDao rDao, SalaDao sDao, UsuarioDao uDao, RecursoDao reDao){
+        this.rDao = rDao;
         this.uDao = uDao;
         this.sDao = sDao;
-        this.uDao = uDao;
         this.reDao = reDao;
     }
 
@@ -79,6 +79,8 @@ public class ReservaController {
         r.setUsuarioId(usuario.get());
         r.setRecursoId(recurso.get());
         r.setDataReserva(dataReserva.get());
+        r.setHorarioInicio(horaInicio.get());
+        r.setHorarioFim(horaFim.get());
         return r;
     }
     public void fromEntity(Reserva r){
@@ -125,7 +127,7 @@ public class ReservaController {
         sala.set(null);
         usuario.set(null);
         recurso.set(null);
-        dataReserva.set(LocalDate.of(0,0,0));
+        dataReserva.set(null);
         horaInicio.set(LocalTime.of(0,0));
         horaFim.set(LocalTime.of(0,0));
 

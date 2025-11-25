@@ -56,12 +56,14 @@ public class ReservaView implements Tela{
 
         try {
             control.carregarTipos();
+            control.listar();
         } catch (Exception e) {
             e.printStackTrace();
         }
         txtIDSala.setItems(control.getListaSalas());
         txtIDUsuario.setItems(control.getListaUsuarios());
         txtIDRecurso.setItems(control.getListaRecursos());
+
 
         txtIDSala.setCellFactory(cb -> new ListCell<Sala>() {
             @Override
@@ -210,6 +212,9 @@ public class ReservaView implements Tela{
 
 
         //Colocar os Bindings
+        txtIDTipo.textProperty().bind(
+                Bindings.selectString(control.usuarioProperty(), "TipoId", "nome")
+        );
         Bindings.bindBidirectional(txtIDReserva.textProperty(), control.idProperty(), new NumberStringConverter());
         Bindings.bindBidirectional(txtIDSala.valueProperty(), control.salaProperty());
         Bindings.bindBidirectional(txtIDUsuario.valueProperty(),control.usuarioProperty());
