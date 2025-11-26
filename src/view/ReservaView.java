@@ -30,6 +30,17 @@ public class ReservaView implements Tela{
 
     private TableView<Reserva> tblReserva = new TableView<Reserva>();
 
+    public void refreshData() {
+        try {
+            // Recarrega as listas de Sala, Usuário e Recurso do banco de dados
+            control.carregarTipos();
+            // A lista observável (ObservableList) associada à ComboBox é atualizada aqui.
+        } catch (Exception e) {
+            // Se houver qualquer erro de banco de dados durante a recarga, ele será capturado aqui.
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public Pane render() {
         BorderPane panePrincipal = new  BorderPane();
@@ -131,10 +142,10 @@ public class ReservaView implements Tela{
 
         TableColumn<Reserva, String> colIDTipo = new TableColumn<>();
         colIDTipo.setCellValueFactory(e ->
-                new ReadOnlyStringWrapper(String.valueOf(e.getValue().getTipoId().getNome())));
+                new ReadOnlyStringWrapper(String.valueOf(e.getValue().getUsuarioId().getTipoUsuario().getNome())));
 
         TableColumn<Reserva, String> colIDRecurso = new TableColumn<>();
-        colIDReserva.setCellValueFactory(e ->
+        colIDRecurso.setCellValueFactory(e ->
                 new ReadOnlyStringWrapper(String.valueOf(e.getValue().getRecursoId().getNome())));
 
         TableColumn<Reserva, String> colDataReserva = new TableColumn<>();
@@ -154,6 +165,9 @@ public class ReservaView implements Tela{
         colIDUsuario.setText("Usuario");
         colIDTipo.setText("Tipo Usuario");
         colIDRecurso.setText("Recurso");
+        colDataReserva.setText("Data Reserva");
+        colhorarioInicio.setText("Hora Inicio");
+
         tblReserva.setItems(control.listaProperty());
 
 
@@ -213,7 +227,7 @@ public class ReservaView implements Tela{
 
         //Colocar os Bindings
         txtIDTipo.textProperty().bind(
-                Bindings.selectString(control.usuarioProperty(), "TipoId", "nome")
+                Bindings.selectString(control.usuarioProperty(), "tipoUsuario", "nome")
         );
         Bindings.bindBidirectional(txtIDReserva.textProperty(), control.idProperty(), new NumberStringConverter());
         Bindings.bindBidirectional(txtIDSala.valueProperty(), control.salaProperty());

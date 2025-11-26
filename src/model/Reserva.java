@@ -8,7 +8,6 @@ public class Reserva {
     private int ReservaId;
     private Sala SalaId;
     private Usuario UsuarioId;
-    private TipoUsuario TipoId;
     private Recurso RecursoId;
     private LocalDate dataReserva;
     private LocalTime horarioInicio;
@@ -83,12 +82,5 @@ public class Reserva {
                 '}';
     }
 
-    public TipoUsuario getTipoId() {
-        return TipoId;
-    }
-
-    public void setTipoId(TipoUsuario tipoId) {
-        TipoId = tipoId;
-    }
 }
 

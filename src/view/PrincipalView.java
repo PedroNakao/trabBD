@@ -65,6 +65,7 @@ public class  PrincipalView extends Application {
                 panPrincipal.setCenter( telareservaPaneView)
         );
 
+
         panPrincipal.setTop( menuBar );
 
         stage.setScene(scn);
